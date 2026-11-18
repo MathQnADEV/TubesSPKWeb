@@ -16,10 +16,10 @@ import {
     ShieldAlert,
     SlidersHorizontal,
     Users,
-    Waves,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { PrioritySourceDialog } from '@/components/priority-source-dialog';
 import type {
     LeafletLayer,
@@ -332,7 +332,7 @@ export default function SpkIndex({
 
     return (
         <>
-            <Head title="SPK Mitigasi Banjir Sulawesi Selatan">
+            <Head title="Dashboard Prioritas Sulawesi Selatan">
                 <link
                     rel="stylesheet"
                     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -354,9 +354,7 @@ export default function SpkIndex({
                         <header className="relative z-10 flex flex-col gap-3.5">
                             <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="ios-floating-glass flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-[#facc15]">
-                                        <Waves className="h-5 w-5" />
-                                    </div>
+                                    <AppLogoIcon className="h-12 w-12 shrink-0 drop-shadow-[0_4px_14px_rgba(56,189,248,0.35)]" />
                                     <div>
                                         <h1 className="text-sm leading-tight font-extrabold tracking-tight text-white sm:text-base">
                                             SPK Mitigasi Banjir{' '}
