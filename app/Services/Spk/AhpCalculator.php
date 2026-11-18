@@ -39,9 +39,11 @@ class AhpCalculator
         $matrix = [];
 
         for ($i = 0; $i < $n; $i++) {
+            $row = [];
+
             for ($j = 0; $j < $n; $j++) {
                 if ($i === $j) {
-                    $matrix[$i][$j] = 1.0;
+                    $row[] = 1.0;
                 } elseif ($i < $j) {
                     $key = ($i + 1).'-'.($j + 1);
 
@@ -49,12 +51,14 @@ class AhpCalculator
                         throw new InvalidArgumentException("Nilai perbandingan {$key} tidak valid.");
                     }
 
-                    $matrix[$i][$j] = (float) $upperTriangle[$key];
+                    $row[] = (float) $upperTriangle[$key];
                 } else {
                     $key = ($j + 1).'-'.($i + 1);
-                    $matrix[$i][$j] = 1 / (float) $upperTriangle[$key];
+                    $row[] = 1 / (float) $upperTriangle[$key];
                 }
             }
+
+            $matrix[] = $row;
         }
 
         return $matrix;
@@ -84,29 +88,39 @@ class AhpCalculator
 
         $columnSums = [];
         for ($j = 0; $j < $n; $j++) {
-            $columnSums[$j] = array_sum(array_column($matrix, $j));
+            $sum = 0.0;
+            foreach ($matrix as $row) {
+                $sum += $row[$j];
+            }
+            $columnSums[] = $sum;
         }
 
         $normalized = [];
         $rowSums = [];
         $weights = [];
-        for ($i = 0; $i < $n; $i++) {
+        foreach ($matrix as $row) {
+            $normalizedRow = [];
+            $rowSum = 0.0;
             for ($j = 0; $j < $n; $j++) {
-                $normalized[$i][$j] = $matrix[$i][$j] / $columnSums[$j];
+                $value = $row[$j] / $columnSums[$j];
+                $normalizedRow[] = $value;
+                $rowSum += $value;
             }
-            $rowSums[$i] = array_sum($normalized[$i]);
-            $weights[$i] = $rowSums[$i] / $n;
+
+            $normalized[] = $normalizedRow;
+            $rowSums[] = $rowSum;
+            $weights[] = $rowSum / $n;
         }
 
         $weightedSums = [];
         $ratios = [];
-        for ($i = 0; $i < $n; $i++) {
+        foreach ($matrix as $i => $row) {
             $sum = 0.0;
             for ($j = 0; $j < $n; $j++) {
-                $sum += $matrix[$i][$j] * $weights[$j];
+                $sum += $row[$j] * $weights[$j];
             }
-            $weightedSums[$i] = $sum;
-            $ratios[$i] = $sum / $weights[$i];
+            $weightedSums[] = $sum;
+            $ratios[] = $sum / $weights[$i];
         }
 
         $lambdaMax = array_sum($ratios) / $n;

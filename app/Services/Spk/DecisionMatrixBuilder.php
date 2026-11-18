@@ -21,13 +21,14 @@ class DecisionMatrixBuilder
      */
     public function availableYears(): array
     {
-        return FloodEvent::query()
-            ->distinct()
-            ->orderByDesc('tahun')
-            ->pluck('tahun')
-            ->map(fn ($year) => (int) $year)
-            ->values()
-            ->all();
+        return array_values(
+            FloodEvent::query()
+                ->distinct()
+                ->orderByDesc('tahun')
+                ->pluck('tahun')
+                ->map(fn ($year) => (int) $year)
+                ->all(),
+        );
     }
 
     /**

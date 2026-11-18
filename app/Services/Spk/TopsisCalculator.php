@@ -32,7 +32,6 @@ class TopsisCalculator
      */
     public function calculate(array $values, array $weights, array $types): array
     {
-        $m = count($values);
         $n = count($weights);
 
         $divisors = [];
@@ -41,47 +40,58 @@ class TopsisCalculator
             foreach ($values as $row) {
                 $sumSquares += $row[$j] ** 2;
             }
-            $divisors[$j] = sqrt($sumSquares);
+            $divisors[] = sqrt($sumSquares);
         }
 
         $normalized = [];
         $weighted = [];
-        foreach ($values as $i => $row) {
+        foreach ($values as $row) {
+            $normalizedRow = [];
+            $weightedRow = [];
             for ($j = 0; $j < $n; $j++) {
-                $normalized[$i][$j] = $divisors[$j] > 0 ? $row[$j] / $divisors[$j] : 0.0;
-                $weighted[$i][$j] = $normalized[$i][$j] * $weights[$j];
+                $value = $divisors[$j] > 0 ? $row[$j] / $divisors[$j] : 0.0;
+                $normalizedRow[] = $value;
+                $weightedRow[] = $value * $weights[$j];
             }
+            $normalized[] = $normalizedRow;
+            $weighted[] = $weightedRow;
         }
 
         $idealPositive = [];
         $idealNegative = [];
         for ($j = 0; $j < $n; $j++) {
-            $column = $m > 0 ? array_column($weighted, $j) : [0.0];
+            $column = array_column($weighted, $j);
             $isCost = ($types[$j] ?? 'benefit') === 'cost';
-            $idealPositive[$j] = $isCost ? min($column) : max($column);
-            $idealNegative[$j] = $isCost ? max($column) : min($column);
+            $highest = $column === [] ? 0.0 : max($column);
+            $lowest = $column === [] ? 0.0 : min($column);
+
+            $idealPositive[] = $isCost ? $lowest : $highest;
+            $idealNegative[] = $isCost ? $highest : $lowest;
         }
 
         $distancePositive = [];
         $distanceNegative = [];
         $preferences = [];
-        foreach ($weighted as $i => $row) {
+        foreach ($weighted as $row) {
             $plus = 0.0;
             $minus = 0.0;
             for ($j = 0; $j < $n; $j++) {
                 $plus += ($row[$j] - $idealPositive[$j]) ** 2;
                 $minus += ($row[$j] - $idealNegative[$j]) ** 2;
             }
-            $distancePositive[$i] = sqrt($plus);
-            $distanceNegative[$i] = sqrt($minus);
-            $total = $distancePositive[$i] + $distanceNegative[$i];
-            $preferences[$i] = $total > 0 ? $distanceNegative[$i] / $total : 0.0;
+            $toPositive = sqrt($plus);
+            $toNegative = sqrt($minus);
+            $total = $toPositive + $toNegative;
+
+            $distancePositive[] = $toPositive;
+            $distanceNegative[] = $toNegative;
+            $preferences[] = $total > 0 ? $toNegative / $total : 0.0;
         }
 
         // Sama seperti RANK(...,0) di Excel: nilai sama mendapat peringkat sama.
         $ranks = [];
-        foreach ($preferences as $i => $value) {
-            $ranks[$i] = 1 + count(array_filter($preferences, fn (float $other) => $other > $value));
+        foreach ($preferences as $value) {
+            $ranks[] = 1 + count(array_filter($preferences, fn (float $other) => $other > $value));
         }
 
         return [

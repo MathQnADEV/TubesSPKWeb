@@ -125,11 +125,7 @@ class SpkController extends Controller
                 ->all(),
             'yearEditable' => $this->period->isEditable($year),
             'lockMessage' => $this->period->lockMessage($year),
-            'regions' => collect(array_keys(config('spk.regions')))
-                ->sort()
-                ->map(fn (string $name) => ['name' => $name, 'population' => config('spk.population')[$name] ?? null])
-                ->values()
-                ->all(),
+            'regions' => $this->regionOptions(),
             'events' => FloodEvent::query()
                 ->where('tahun', $year)
                 ->orderByDesc('tanggal_kejadian')
@@ -153,6 +149,27 @@ class SpkController extends Controller
                 ])
                 ->all(),
         ];
+    }
+
+    /**
+     * Daftar kabupaten/kota (urut abjad) beserta penduduk BPS untuk formulir input.
+     *
+     * @return list<array{name: string, population: float|null}>
+     */
+    private function regionOptions(): array
+    {
+        /** @var array<string, array{0: float, 1: float}> $regions */
+        $regions = config('spk.regions');
+        /** @var array<string, float> $population */
+        $population = config('spk.population');
+
+        $names = array_keys($regions);
+        sort($names);
+
+        return array_map(
+            fn (string $name) => ['name' => $name, 'population' => $population[$name] ?? null],
+            $names,
+        );
     }
 
     /**
